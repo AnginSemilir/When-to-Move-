@@ -140,5 +140,7 @@ function chart(rows,never,best){
   svg.innerHTML=s;
 }
 document.querySelectorAll('input,select').forEach(i=>i.addEventListener('input',run));
+// Number fields are typed only: no arrow-key or scroll-wheel stepping.
+document.querySelectorAll('input[type=number]').forEach(i=>{i.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown')e.preventDefault();});i.addEventListener('wheel',e=>{if(document.activeElement===i)e.preventDefault();},{passive:false});});
 $('reset').addEventListener('click',()=>{Object.entries(defaults).forEach(([k,v])=>$(k).value=v);run();});
 run();

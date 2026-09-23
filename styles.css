@@ -42,3 +42,5 @@ button{font:inherit;font-size:14px;border:1px solid var(--line);background:trans
 button:focus-visible{outline:2px solid var(--green)}
 td.warn{color:var(--bad)}
 [hidden]{display:none!important}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}

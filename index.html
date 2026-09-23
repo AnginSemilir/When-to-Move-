@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>When to move house</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <main>
+    <h1>When to move house</h1>
+    <p class="verdict" id="verdict">Working it out…</p>
+    <p class="sub" id="sub"></p>
+    <dl class="facts" id="facts"></dl>
+
+    <section style="margin-top:26px">
+      <h2>Your position at age 100, by the age you move</h2>
+      <div class="chart"><svg id="chart" viewBox="0 0 640 300" role="img" aria-label="Wealth at age 100 by moving age"></svg>
+        <div class="legend"><span>Including the value of living there</span><span class="l3">Money only</span><span class="l2" id="neverLbl">Never move</span></div>
+      </div>
+      <p class="note" style="margin-top:8px">Figures are in today's money (adjusted for inflation). Gaps in the lines are years when the move isn't possible yet; the table says why.</p>
+    </section>
+
+    <section style="margin-top:26px">
+      <h2>Year by year</h2>
+      <div class="tablewrap"><table id="tbl"></table></div>
+    </section>
+
+    <section style="margin-top:26px">
+      <h2>House price growth used (% a year)</h2>
+      <p class="note" style="margin:0 0 8px" id="growthUsed"></p>
+      <div class="tablewrap"><table id="gtbl"></table></div>
+      <p class="note" style="margin-top:8px">Source: UK House Price Index (ONS and HM Land Registry). Long-run figures are annualised 2016–2026 changes in each region's average price, then adjusted by property type using England's gap between types over the same period. Last-12-months figures are to July 2026; for English regions except London and the North East they use the former owner-occupier series. Northern Ireland is published on a different cycle, so it uses its long-run figure in both columns. The chosen rate is applied every year until 100.</p>
+    </section>
+
+    <section class="note" style="margin-top:26px">
+      <h2 style="color:var(--ink)">How it works</h2>
+      <p>Each month you put a fixed amount towards housing: your current mortgage payment (or rent, if you're buying your first home) plus what you save. That pot rises each year with your pay. Before the move, whatever isn't mortgage goes into savings. On moving day, your equity after selling costs plus all savings become the deposit, minus stamp duty, the mortgage fee and other costs.</p>
+      <p>The rate comes from the table by loan-to-value. Every time a fixed deal ends you remortgage at your new LTV and pay the fee again, so paying down debt earns you cheaper rates. After a mortgage is cleared, the whole monthly pot goes into savings.</p>
+      <p>A move is ruled out if the deposit is under 5%, the new payment is more than your monthly pot, or the mortgage couldn't run for at least 5 years before your maximum age. Property tax follows the new home's region: stamp duty in England and Northern Ireland (with first-time buyer relief up to £500,000), Land and Buildings Transaction Tax in Scotland (with first-time buyer relief), and Land Transaction Tax in Wales (no first-time buyer relief). Bands are those in force from April 2025 and aren't inflated. Lender income checks aren't modelled.</p>
+      <p>Money alone usually says "wait" or "never", because moving costs money. The "worth to you" figure is what makes a bigger home earn its place: the extra you'd happily pay to live there each month, roughly the rent difference between the two homes.</p>
+      <p>Rates are rough 2026 averages for two- and five-year fixes by LTV from Moneyfacts, Rightmove and similar trackers. Averages rose through the year, from under 5% in January to around 5.9% by September, so treat them as a starting point and edit them.</p>
+    </section>
+  </main>
+
+  <aside class="inputs" aria-label="Inputs">
+    <fieldset><legend>You</legend>
+      <label>Your age<input id="age" type="number" value="35" min="18" max="80"></label>
+      <label>Buying your first home?<select id="ftb"><option selected>No</option><option>Yes</option></select></label>
+    </fieldset>
+    <fieldset id="ownerSet"><legend>Your home now</legend>
+      <label>Region<select id="curRegion"><option>North East</option><option selected>North West</option><option>Yorkshire and the Humber</option><option>East Midlands</option><option>West Midlands</option><option>East of England</option><option>London</option><option>South East</option><option>South West</option><option>Wales</option><option>Scotland</option><option>Northern Ireland</option></select></label>
+      <label>Type<select id="curType"><option>All types</option><option>Detached</option><option>Semi-detached</option><option selected>Terraced</option><option>Flat or maisonette</option></select></label>
+      <label>Current value (£)<input id="curValue" type="number" value="250000" step="5000"></label>
+      <label>Equity (£)<small>value minus what you owe</small><input id="equity" type="number" value="80000" step="1000"></label>
+      <label>Years left on mortgage<input id="curYears" type="number" value="25" min="0"></label>
+      <label>Selling costs (%)<small>estate agent, legal</small><input id="sell" type="number" value="1.5" step="0.1"></label>
+    </fieldset>
+    <fieldset id="renterSet" hidden><legend>Renting now</legend>
+      <label>Monthly rent (£)<small>rises with inflation</small><input id="rent" type="number" value="1100" step="25"></label>
+    </fieldset>
+    <fieldset><legend>The home you want</legend>
+      <label>Region<select id="newRegion"><option>North East</option><option selected>North West</option><option>Yorkshire and the Humber</option><option>East Midlands</option><option>West Midlands</option><option>East of England</option><option>London</option><option>South East</option><option>South West</option><option>Wales</option><option>Scotland</option><option>Northern Ireland</option></select></label>
+      <label>Type<select id="newType"><option>All types</option><option>Detached</option><option selected>Semi-detached</option><option>Terraced</option><option>Flat or maisonette</option></select></label>
+      <label>Price today (£)<input id="target" type="number" value="400000" step="5000"></label>
+      <label>New mortgage term (years)<input id="term" type="number" value="30"></label>
+      <label>Mortgage must end by age<input id="maxAge" type="number" value="70"></label>
+      <label>Other buying costs (£)<small>legal, survey, removals</small><input id="other" type="number" value="3000" step="250"></label>
+      <label>Worth to you per month (£)<small>in today's money</small><input id="benefit" type="number" value="300" step="50"></label>
+    </fieldset>
+    <fieldset><legend>Saving</legend>
+      <label>Saved already (£)<input id="savings" type="number" value="10000" step="500"></label>
+      <label>Monthly saving (£)<input id="save" type="number" value="600" step="50"></label>
+      <label>Savings interest (%)<input id="s" type="number" value="4" step="0.1"></label>
+      <label>Yearly pay rise (%)<small>grows your monthly pot</small><input id="wage" type="number" value="2" step="0.1"></label>
+    </fieldset>
+    <fieldset><legend>Market</legend>
+      <label>House price growth<small>from the regional data below</small><select id="basis"><option selected>Long-run (2016–26)</option><option>Last 12 months</option></select></label>
+      <label>Inflation (%/yr)<input id="infl" type="number" value="2.5" step="0.1"></label>
+      <label>Fix length (years)<input id="fixYears" type="number" value="5" min="1"></label>
+      <label>Fee per mortgage deal (£)<input id="fee" type="number" value="1000" step="100"></label>
+    </fieldset>
+    <fieldset><legend>Rates by loan-to-value (%)</legend>
+      <div class="rates" id="rates"></div>
+    </fieldset>
+    <button type="button" id="reset">Reset to defaults</button>
+  </aside>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

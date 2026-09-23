@@ -26,7 +26,7 @@ function run(){
     $('payNote').textContent=p.owed<=0?'no mortgage':p.curPay>0?'used as your payment now':p.curYears<=0?'enter the years left to estimate it':'blank: estimated at '+gbp(pmt(p.owed,r0,Math.round(p.curYears*12)))+'/mo';}
   $('preferNote').textContent=p.prefer===0?'0 judges on money alone':(p.prefer<0?'a drawback of about '+gbp(-p.benefit):'worth about '+gbp(p.benefit))+'/mo now, '+(p.ftb?'as a share of your rent':'if your home would rent for about '+gbp(p.baseRent)+'/mo');
   const res=evaluate(p);
-  if(res.problem){status('none','Check your numbers');$('verdict').textContent='Something doesn\'t add up';$('sub').textContent=res.problem;$('facts').innerHTML='';$('tbl').innerHTML='';$('alert').hidden=true;CH=null;$('chart').innerHTML='';unhover();return;}
+  if(res.problem){status('none','Check your numbers');$('verdict').textContent='Something doesn\'t add up';$('sub').textContent=res.problem;$('facts').innerHTML='';$('tbl').innerHTML='';$('alert').hidden=true;$('dealsCard').hidden=true;CH=null;$('chart').innerHTML='';unhover();return;}
   const {never,rows,ok,best,bestFin,first}=res;
   // verdict
   const V=$('verdict'),S=$('sub'),F=$('facts');
@@ -42,6 +42,7 @@ function run(){
     if(i.over>0&&!best.res.short)S.textContent+=' The payment is '+gbp(i.over)+'/mo more than your pot at first; that comes out of savings and is already counted.';}
   // Warn when the recommended path (or staying put) runs savings below zero.
   shortAlert(best&&best.res.tot>=never.tot?best:{res:never,stay:true},p);
+  dealsTable(p,best&&best.res.tot>=never.tot?best.y:null);
   table(rows,best);chart(rows,never,best,p);
 }
 const ICONS={move:'<path d="M3.5 8.5l3 3 6-7"/>',stay:'<path d="M2.5 8h11"/>',none:'<path d="M4 4l8 8M12 4l-8 8"/>'};
@@ -56,9 +57,22 @@ function shortAlert(path,p){const a=$('alert'),s=path&&path.res.short;
   a.hidden=false;
   a.innerHTML='<b>Your savings run out'+(path.stay?(p.ftb?' if you keep renting':' if you stay put'):'')+'.</b> They drop below zero at '+Math.floor(s.from)+' and are at their lowest at '+Math.floor(s.worstAge)+', '+gbp(-s.worst)+' short in today\'s money. '+
     'The figures assume you borrow the gap at your savings interest rate. In practice you\'d need to cut other spending or borrow at a higher rate, so treat this result with care.';}
+// Every fixed deal on the recommended path (or staying put): rate by LTV at each remortgage.
+function dealsTable(p,moveYear){
+  const d=[];simulate(p,moveYear,d);
+  if(!d.length){$('dealsCard').hidden=true;return;}
+  $('dealsCard').hidden=false;
+  const lowest=Math.min(...p.bands.map(b=>b[1]));
+  $('dealsNote').textContent=(moveYear==null?(p.ftb?'Renting for good, so no mortgage.':'If you stay put. '):'If you move at '+(p.age+moveYear)+'. ')+
+    'Each time a fix ends you remortgage at the rate for your loan-to-value then. Rates stop falling once you\'re in the lowest band (up to '+p.bands[0][0]+'% LTV, '+(lowest*100).toFixed(2)+'%).';
+  let h='<thead><tr><th>From age</th><th>Owed</th><th>Home worth</th><th>LTV</th><th>Rate</th><th>Payment</th></tr></thead><tbody>';
+  d.forEach((x,i)=>{const prev=d[i-1],down=prev&&x.rate<prev.rate-1e-9;
+    h+='<tr><td>'+Math.floor(x.age)+'</td><td>'+gbp(x.balance)+'</td><td>'+gbp(x.value)+'</td><td>'+x.ltv.toFixed(0)+'%</td><td'+(down?' class="good"':'')+'>'+(x.rate*100).toFixed(2)+'%'+(down?' ↓':'')+'</td><td>'+gbp(x.payment)+'</td></tr>';});
+  $('deals').innerHTML=h+'</tbody>';
+}
 function fact(k,v,cls){return '<div'+(cls?' class="'+cls+'"':'')+'><dt>'+k+'</dt><dd>'+v+'</dd></div>';}
 function table(rows,best){
-  let h='<thead><tr><th>Move at</th><th>Price then</th><th>ERC</th><th>Deposit</th><th>LTV</th><th>Rate</th><th>Payment</th><th>Your pot</th><th>Over pot</th><th>Savings run out</th><th>At 100</th><th>Money only</th></tr></thead><tbody>';
+  let h='<thead><tr><th>Move at</th><th>Price then</th><th>ERC</th><th>Deposit</th><th>LTV</th><th>First rate</th><th>Payment</th><th>Your pot</th><th>Over pot</th><th>Savings run out</th><th>At 100</th><th>Money only</th></tr></thead><tbody>';
   rows.forEach(r=>{const i=r.res.info||{};
     if(!r.res.ok){h+='<tr class="fail"><td>'+r.age+'</td><td>'+gbp(i.price)+'</td><td>'+(i.erc>0?gbp(i.erc):'–')+'</td><td colspan="9" class="no">'+r.res.reason+'</td></tr>';return;}
     const isBest=best&&r.y===best.y;
@@ -132,5 +146,27 @@ document.querySelectorAll('input,select').forEach(i=>i.addEventListener('input',
 // Number fields are typed only: no arrow-key or scroll-wheel stepping.
 document.querySelectorAll('input[type=number]').forEach(i=>{i.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown')e.preventDefault();});i.addEventListener('wheel',e=>{if(document.activeElement===i)e.preventDefault();},{passive:false});});
 $('reset').addEventListener('click',()=>{setFields(DEFAULTS);run();});
+// Export: your inputs (as typed, using the model's field names) and the full results, as a JSON file.
+function exportData(){
+  const inputs=Object.fromEntries(FIELDS.map(k=>[k,$(k).value])), p=params(inputs), e=evaluate(p);
+  const r2=v=>v==null?null:Math.round(v*100)/100, info=i=>i&&{price:r2(i.price),deposit:r2(i.dep),loan:r2(i.loan),ltv:r2(i.ltv),rate:i.rate==null?null:r2(i.rate*100),
+    payment:r2(i.pay),pot:r2(i.budget),overPot:r2(i.over),propertyTax:r2(i.stamp),earlyRepaymentCharge:r2(i.erc),lendingLimit:r2(i.maxLoan)};
+  const short=s=>s&&{fromAge:r2(s.from),lowestAge:r2(s.worstAge),lowest:r2(s.worst)};
+  const out={app:'When to move house',exported:new Date().toISOString(),inputs,
+    result:{verdict:$('verdict').textContent,summary:$('sub').textContent,kind:e.kind,problem:e.problem||null}};
+  if(!e.problem){const moveY=e.kind==='move'?e.best.y:null,d=[];simulate(p,moveY,d);
+    Object.assign(out.result,{bestAge:e.best&&e.best.age,moneyOnlyBestAge:e.bestFin&&e.bestFin.age,
+      neverMove:{atHundred:r2(e.never.tot),savingsShort:short(e.never.short)},
+      best:e.best&&{age:e.best.age,atHundred:r2(e.best.res.tot),moneyOnly:r2(e.best.res.fin),...info(e.best.res.info),savingsShort:short(e.best.res.short)},
+      deals:d.map(x=>({fromAge:r2(x.age),owed:r2(x.balance),homeWorth:r2(x.value),ltv:r2(x.ltv),rate:r2(x.rate*100),payment:r2(x.payment)})),
+      years:e.rows.map(r=>Object.assign({age:r.age,possible:r.res.ok,reason:r.res.reason||null},r.res.ok?{atHundred:r2(r.res.tot),moneyOnly:r2(r.res.fin),savingsShort:short(r.res.short)}:{},info(r.res.info)))});}
+  const text=JSON.stringify(out,null,2), name='when-to-move-'+new Date().toISOString().slice(0,10)+'.json';
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}catch(err){}
+  const b=$('export');
+  const done=msg=>{b.textContent=msg;setTimeout(()=>b.textContent='Export',2000);};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>done('Saved & copied'),()=>done('Saved'));else done('Saved');
+  return out;
+}
+$('export').addEventListener('click',exportData);
 setFields(DEFAULTS);
 run();

@@ -45,7 +45,7 @@ function propTax(price,region,ftb){
 }
 function taxName(region){return region==='Scotland'?'LBTT':region==='Wales'?'Land Transaction Tax':'Stamp duty';}
 
-function simulate(p,moveYear){
+function simulate(p,moveYear,deals){
   const T=Math.max(1,Math.round((100-p.age)*12));
   const sm=p.s/12, gmCur=Math.pow(1+p.gCur,1/12)-1, gmNew=Math.pow(1+p.gNew,1/12)-1;
   let value=p.ftb?0:p.curValue, bal=p.ftb?0:Math.max(0,p.owed), savings=p.savings, benefit=0, lend=p.useOffer?p.offer:p.income*p.lti;
@@ -82,6 +82,7 @@ function simulate(p,moveYear){
     if(bal>0&&dealLeft<=0){
       rate=rateFor(p,bal/value*100)??p.bands[p.bands.length-1][1];
       payment=pmt(bal,rate,remain);dealLeft=Math.round(p.fixYears*12);
+      if(deals)deals.push({age:p.age+m/12,ltv:bal/value*100,rate,payment,balance:bal,value});
       if(m>0&&m!==moveM)savings-=p.fee;
     }
     let out=0;

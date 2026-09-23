@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=13">
+<link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
 <header class="top">
@@ -32,6 +32,14 @@
       <a class="jump" href="#inputs">Change your numbers ↓</a>
     </section>
 
+    <section class="card" id="dealsCard" hidden>
+      <div class="cardhead">
+        <h2>Your mortgage deals</h2>
+        <p class="note" id="dealsNote"></p>
+      </div>
+      <div class="tablewrap"><table id="deals"></table></div>
+    </section>
+
     <section class="card">
       <div class="cardhead">
         <h2>Your position at 100, by the age you move</h2>
@@ -47,7 +55,7 @@
     <section class="card">
       <div class="cardhead">
         <h2>Year by year</h2>
-        <p class="note">Greyed-out years aren't possible, with the reason shown. Scroll for later years.</p>
+        <p class="note">Greyed-out years aren't possible, with the reason shown. Rate and payment are for the first deal after moving. Scroll for later years.</p>
       </div>
       <div class="tablewrap tall"><table id="tbl"></table></div>
     </section>
@@ -90,7 +98,7 @@
   </main>
 
   <aside class="inputs" id="inputs" aria-label="Your numbers">
-    <div class="panelhead"><h2>Your numbers</h2><button type="button" id="reset">Reset</button></div>
+    <div class="panelhead"><h2>Your numbers</h2><div class="btns"><button type="button" id="export" title="Download your numbers and results as a JSON file">Export</button><button type="button" id="reset">Reset</button></div></div>
     <fieldset><legend>You</legend>
       <label>Your age<input id="age" type="number" value="35" min="18" max="80"></label>
       <label>Buying your first home?<select id="ftb"><option selected>No</option><option>Yes</option></select></label>
@@ -147,8 +155,8 @@
 </div>
 
 <script>window.addEventListener('error',function(){var v=document.getElementById('verdict');if(v&&v.textContent==='Working it out…'){v.textContent='Something didn\u2019t load';document.getElementById('sub').textContent='Please refresh the page. If you\u2019ve visited before, a hard refresh (Ctrl+Shift+R, or Cmd+Shift+R on a Mac) makes sure you have the latest version.';}});</script>
-<script src="data.js?v=13"></script>
-<script src="model.js?v=13"></script>
-<script src="app.js?v=13"></script>
+<script src="data.js?v=15"></script>
+<script src="model.js?v=15"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>

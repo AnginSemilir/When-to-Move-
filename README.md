@@ -54,4 +54,6 @@ The run covers:
 - **Scenarios** (`tests/scenarios.js`): people described by the inputs they'd type, each with the answer a sensible person would expect. Every result must also obey some basic rules: no loan over 95% LTV or the lending limit, no mortgage past the age limit, the best year really is the best, and so on.
 - **What-ifs**: change one input and the answer should move the way common sense says. For example, more savings never leaves you worse off.
 
+To check a result someone exported from the page (the **Export** button saves a JSON file with their inputs and results), run `node tests/check-export.js <file.json>`. It re-runs their inputs and says whether the model still gives the same answer. Their `inputs` can also be pasted straight into a new scenario.
+
 It finishes with a table of every scenario's result for reading through. To add a scenario, copy one in `tests/scenarios.js` and change the inputs and expectations.

@@ -146,3 +146,5 @@ button:focus-visible,.jump:focus-visible{outline:2px solid var(--s1);outline-off
 .alert{margin:16px 0 0;padding:12px 14px 12px 40px;border-radius:12px;background:var(--warnSoft);color:var(--ink);font-size:14.5px;max-width:70ch;position:relative}
 .alert b{color:var(--warn)}
 .alert::before{content:"!";position:absolute;left:12px;top:12px;width:18px;height:18px;border-radius:50%;background:var(--warn);color:var(--card);font-weight:800;font-size:12px;line-height:18px;text-align:center}
+td.good{color:var(--green);font-weight:600}
+.btns{display:flex;gap:8px}

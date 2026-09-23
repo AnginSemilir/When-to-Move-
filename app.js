@@ -107,7 +107,8 @@ function run(){
     F.innerHTML=fact('Best move age',best.age)+fact('Earliest possible',first.age);}
   else{status('move',p.ftb?'Worth buying':'Worth moving');V.textContent=best.y===0?'Move now, at '+best.age:'Move at '+best.age+', in '+best.y+' year'+(best.y>1?'s':'');
     const i=best.res.info;
-    S.textContent='By 100 that leaves you '+gbp(best.res.tot-never.tot)+' better off than '+(p.ftb?'renting for good':'never moving')+', in today\'s money.'+(bestFin&&bestFin.y!==best.y?' On money alone the best age would be '+bestFin.age+'.':'')+(first&&first.y<best.y?' You could move from '+first.age+', but waiting pays.':'');
+    S.textContent='By 100 that leaves you '+gbp(best.res.tot-never.tot)+' better off than '+(p.ftb?'renting for good':'never moving')+', in today\'s money.'+(first&&first.y<best.y?' You could move from '+first.age+', but waiting until '+best.age+' leaves you '+gbp(best.res.tot-first.res.tot)+' better off.':'')+(bestFin&&bestFin.y!==best.y?' On money alone the best age would be '+bestFin.age+', but only by '+gbp(bestFin.res.fin-best.res.fin)+', so how much you value the new home decides the timing.':'');
+    S.textContent+=closeCall(ok,best);
     F.innerHTML=fact('Price then',gbp(i.price))+fact('Deposit',gbp(Math.min(i.dep,i.price)))+fact('Loan-to-value',i.ltv.toFixed(0)+'%')+(i.pay?fact(i.fromOffer?'Rate (your offer)':'Rate',(i.rate*100).toFixed(2)+'%')+fact('Payment',gbp(i.pay)+'/mo'):'')+fact('Your pot then',gbp(i.budget)+'/mo')+(i.over>0?fact('Over your pot',gbp(i.over)+'/mo','warn'):'')+fact('Lenders would lend',gbp(i.maxLoan))+fact(taxName(p.newRegion),gbp(i.stamp))+(i.erc>0?fact('Early repayment charge',gbp(i.erc),'warn'):'');
     if(i.over>0)S.textContent+=' The payment is '+gbp(i.over)+'/mo more than your pot at first; that comes out of savings and is already counted.';}
   table(rows,best);chart(rows,never,best,p);
@@ -116,6 +117,9 @@ const ICONS={move:'<path d="M3.5 8.5l3 3 6-7"/>',stay:'<path d="M2.5 8h11"/>',no
 function status(kind,label){const b=$('badge');b.hidden=false;b.className='badge '+kind;
   b.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+ICONS[kind]+'</svg>'+label;
   $('hero').classList.toggle('is-none',kind==='none');}
+// When other years are within 1% of the best, the timing is a close call: say so, with the range.
+function closeCall(ok,best){const near=ok.filter(r=>best.res.tot-r.res.tot<=Math.abs(best.res.tot)*0.01);if(near.length<2)return '';
+  const a=near[0].age,b=near[near.length-1].age;return ' It\'s a close call: moving any time from '+a+' to '+b+' comes within 1% ('+gbp(Math.abs(best.res.tot)*0.01)+') of the best.';}
 function fact(k,v,cls){return '<div'+(cls?' class="'+cls+'"':'')+'><dt>'+k+'</dt><dd>'+v+'</dd></div>';}
 function table(rows,best){
   let h='<thead><tr><th>Move at</th><th>Price then</th><th>ERC</th><th>Deposit</th><th>LTV</th><th>Rate</th><th>Payment</th><th>Your pot</th><th>Over pot</th><th>At 100</th><th>Money only</th></tr></thead><tbody>';

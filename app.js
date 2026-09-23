@@ -1,7 +1,7 @@
 const $=id=>document.getElementById(id);
 const rWrap=$('rates');
 BANDS.forEach(([b,r])=>{const l=document.createElement('label');l.innerHTML='Up to '+b+'%<input id="r'+b+'" type="number" step="0.05" value="'+r+'">';rWrap.appendChild(l);});
-const ids=['age','income','lti','offer','curValue','owed','curYears','sell','rent','target','term','maxAge','other','benefit','savings','save','s','wage','infl','fixYears','fee'];
+const ids=['age','income','lti','offer','offerRate','offerFix','curValue','owed','curYears','sell','rent','target','term','maxAge','other','benefit','savings','save','s','wage','infl','fixYears','fee'];
 const sels=['ftb','borrow','over','curRegion','curType','newRegion','newType','basis'];
 const defaults={};ids.concat(sels,BANDS.map(b=>'r'+b[0])).forEach(i=>defaults[i]=$(i).value);
 
@@ -13,7 +13,7 @@ const pct=v=>(v*100).toFixed(1)+'%';
 
 function read(){const p={};ids.forEach(i=>p[i]=parseFloat($(i).value)||0);
   ['sell','s','wage','infl'].forEach(k=>p[k]/=100);
-  p.ftb=$('ftb').value==='Yes';p.strict=$('over').selectedIndex===1;p.useOffer=$('borrow').selectedIndex===1;p.basis=$('basis').selectedIndex;
+  p.ftb=$('ftb').value==='Yes';p.strict=$('over').selectedIndex===1;p.useOffer=$('borrow').selectedIndex===1;p.offerDeal=p.useOffer&&p.offerRate>0?{rate:p.offerRate/100,months:Math.round((p.offerFix||p.fixYears)*12)}:null;p.basis=$('basis').selectedIndex;
   p.newRegion=$('newRegion').value;
   p.gCur=growth($('curRegion').value,$('curType').value,p.basis);
   p.gNew=growth(p.newRegion,$('newType').value,p.basis);
@@ -52,10 +52,11 @@ function simulate(p,moveYear){
         if(ltv>95)return{ok:false,reason:'Deposit under 5%',info};
         if(termM<60)return{ok:false,reason:'Too close to your maximum mortgage age',info};
         if(loan>info.maxLoan)return{ok:false,reason:'Loan of '+gbp(loan)+' is over the '+gbp(info.maxLoan)+(p.useOffer?' your mortgage offer allows':' lenders would offer ('+p.lti+'× income)'),info};
-        const r=rateFor(p,ltv), pay=pmt(loan,r,termM);Object.assign(info,{rate:r,pay,over:Math.max(0,pay-budget)});
+        const r=p.offerDeal?p.offerDeal.rate:rateFor(p,ltv), pay=pmt(loan,r,termM);Object.assign(info,{rate:r,pay,over:Math.max(0,pay-budget),fromOffer:!!p.offerDeal});
         if(p.strict&&pay>budget)return{ok:false,reason:'Payment '+gbp(pay)+'/mo is over your '+gbp(budget)+'/mo pot',info};
       }
       value=price;bal=loan;savings=Math.max(0,dep-price);remain=termM;dealLeft=0;moved=true;
+      if(loan>0&&p.offerDeal){rate=info.rate;payment=info.pay;dealLeft=p.offerDeal.months;}
     }
     if(bal>0&&dealLeft<=0){
       rate=rateFor(p,bal/value*100)??p.bands[p.bands.length-1][1];
@@ -83,7 +84,7 @@ function growthTable(p){
   $('gtbl').innerHTML=h+'</tbody>';
   $('growthUsed').textContent=(b?'Last 12 months':'Long-run')+' basis. '+(p.ftb?'':'Your home now grows at '+pct(p.gCur)+' a year; ')+'the home you want grows at '+pct(p.gNew)+' a year.';
 }
-function syncMode(){const f=$('ftb').value==='Yes',o=$('borrow').selectedIndex===1;$('offerRow').hidden=!o;$('incomeRow').hidden=o;$('ltiRow').hidden=o;const eq=(parseFloat($('curValue').value)||0)-(parseFloat($('owed').value)||0);$('equityNote').textContent=eq<0?'negative equity of '+gbp(-eq):'your equity is '+gbp(eq);$('ownerSet').hidden=f;$('renterSet').hidden=!f;$('neverLbl').textContent=f?'Never buy (keep renting)':'Never move';}
+function syncMode(){const f=$('ftb').value==='Yes',o=$('borrow').selectedIndex===1;$('offerRow').hidden=!o;document.querySelectorAll('.offerOnly').forEach(e=>e.hidden=!o);$('incomeRow').hidden=o;$('ltiRow').hidden=o;const eq=(parseFloat($('curValue').value)||0)-(parseFloat($('owed').value)||0);$('equityNote').textContent=eq<0?'negative equity of '+gbp(-eq):'your equity is '+gbp(eq);$('ownerSet').hidden=f;$('renterSet').hidden=!f;$('neverLbl').textContent=f?'Never buy (keep renting)':'Never move';}
 
 function run(){
   syncMode();
@@ -105,7 +106,7 @@ function run(){
   else{V.textContent=best.y===0?'Move now, at '+best.age:'Move at '+best.age+', in '+best.y+' year'+(best.y>1?'s':'');
     const i=best.res.info;
     S.textContent='By 100 that leaves you '+gbp(best.res.tot-never.tot)+' better off than '+(p.ftb?'renting for good':'never moving')+', in today\'s money.'+(bestFin&&bestFin.y!==best.y?' On money alone the best age would be '+bestFin.age+'.':'')+(first&&first.y<best.y?' You could move from '+first.age+', but waiting pays.':'');
-    F.innerHTML=fact('Price then',gbp(i.price))+fact('Deposit',gbp(Math.min(i.dep,i.price)))+fact('LTV',i.ltv.toFixed(0)+'%')+(i.pay?fact('Payment',gbp(i.pay)+'/mo'):'')+fact('Your pot then',gbp(i.budget)+'/mo')+(i.over>0?fact('Over pot',gbp(i.over)+'/mo'):'')+fact('Lenders would lend',gbp(i.maxLoan))+fact(taxName(p.newRegion),gbp(i.stamp));
+    F.innerHTML=fact('Price then',gbp(i.price))+fact('Deposit',gbp(Math.min(i.dep,i.price)))+fact('LTV',i.ltv.toFixed(0)+'%')+(i.pay?fact(i.fromOffer?'Rate (your offer)':'Rate',(i.rate*100).toFixed(2)+'%')+fact('Payment',gbp(i.pay)+'/mo'):'')+fact('Your pot then',gbp(i.budget)+'/mo')+(i.over>0?fact('Over pot',gbp(i.over)+'/mo'):'')+fact('Lenders would lend',gbp(i.maxLoan))+fact(taxName(p.newRegion),gbp(i.stamp));
     if(i.over>0)S.textContent+=' The payment is '+gbp(i.over)+'/mo more than your pot at first; that comes out of savings and is already counted.';}
   table(rows,best);chart(rows,never,best);
 }

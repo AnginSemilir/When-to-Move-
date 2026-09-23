@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 <div class="wrap">
@@ -43,6 +43,7 @@
       <p>The rate comes from the table by loan-to-value. Every time a fixed deal ends you remortgage at your new LTV and pay the fee again, so paying down debt earns you cheaper rates. After a mortgage is cleared, the whole monthly pot goes into savings.</p>
       <p>A move is ruled out if the deposit is under 5%, the loan is more than lenders would offer (either your household income times the multiple you set, or the mortgage offer you enter; both rise with your pay for later years), or the mortgage couldn't run for at least 5 years before your maximum age. If the new payment is more than your pot you can still move: the extra each month comes out of your savings, so it lowers your position at 100 (the table shows it as "Over pot"). If you'd rather not stretch, set the option to rule those moves out instead. Property tax follows the new home's region: stamp duty in England and Northern Ireland (with first-time buyer relief up to £500,000), Land and Buildings Transaction Tax in Scotland (with first-time buyer relief), and Land Transaction Tax in Wales (no first-time buyer relief). Bands are those in force from April 2025 and aren't inflated. Lenders also run their own affordability checks on your outgoings, which aren't modelled beyond the income multiple.</p>
       <p>Money alone usually says "wait" or "never", because moving costs money. The "worth to you" figure is what makes a bigger home earn its place: the extra you'd happily pay to live there each month, roughly the rent difference between the two homes.</p>
+      <p>If you have a mortgage offer, you can enter its rate and how long it's fixed for. The new mortgage uses that rate for the fixed period; after that it goes back to the rates table, remortgaging at your loan-to-value like any other deal.</p>
       <p>Rates are rough 2026 averages for two- and five-year fixes by LTV from Moneyfacts, Rightmove and similar trackers. Averages rose through the year, from under 5% in January to around 5.9% by September, so treat them as a starting point and edit them.</p>
     </section>
   </main>
@@ -55,6 +56,8 @@
     <fieldset><legend>Borrowing</legend>
       <label>How much can you borrow?<select id="borrow"><option selected>Work it out from income</option><option>I have a mortgage offer</option></select></label>
       <label id="offerRow" hidden><span>Mortgage offer (£)<small>or agreement in principle; rises with your pay in later years</small></span><input id="offer" type="number" value="300000" step="5000"></label>
+      <label class="offerOnly" hidden><span>Offer rate (%)<small>optional; leave blank to use the rates table</small></span><input id="offerRate" type="number" value="" step="0.01" min="0" placeholder="e.g. 4.49"></label>
+      <label class="offerOnly" hidden><span>Fixed for (years)<small>optional; blank uses your fix length below</small></span><input id="offerFix" type="number" value="" min="1" placeholder="e.g. 5"></label>
       <label id="incomeRow"><span>Household income (£ a year)<small>before tax, everyone on the mortgage</small></span><input id="income" type="number" value="65000" step="1000"></label>
       <label id="ltiRow"><span>Lenders lend up to (× income)<small>4.5 is typical, some go to 5.5</small></span><input id="lti" type="number" value="4.5" step="0.1" min="1"></label>
       <label>If the new payment is more than your pot<select id="over"><option selected>Pay the extra</option><option>Rule the move out</option></select></label>
@@ -99,7 +102,7 @@
 </div>
 
 <script>window.addEventListener('error',function(){var v=document.getElementById('verdict');if(v&&v.textContent==='Working it out…'){v.textContent='Something didn\u2019t load';document.getElementById('sub').textContent='Please refresh the page. If you\u2019ve visited before, a hard refresh (Ctrl+Shift+R, or Cmd+Shift+R on a Mac) makes sure you have the latest version.';}});</script>
-<script src="data.js?v=4"></script>
-<script src="app.js?v=4"></script>
+<script src="data.js?v=5"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>

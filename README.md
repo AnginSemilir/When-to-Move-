@@ -23,6 +23,7 @@ All figures live in `data.js`:
 
 - `BANDS` – `[max LTV %, rate %]` pairs. Based on 2026 average rates.
 - `REGION` – `[long-run 2016–26 growth %, last 12 months %]` per region, from the UK House Price Index. The long-run values are estimates from regional average prices.
+- `RENT_YIELD` – what a home would rent for as a share of its value each year (4.5%). Turns "how much more you'd value living there" into pounds for home owners.
 - `TYPE` – adjustments by property type added to the regional figure, based on England-wide gaps between types.
 
 Property tax bands (England/NI stamp duty, Scottish LBTT, Welsh LTT) are in `propTax()` in `app.js`, using bands in force from April 2025.

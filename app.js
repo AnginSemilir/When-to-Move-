@@ -1,7 +1,7 @@
 const $=id=>document.getElementById(id);
 const rWrap=$('rates');
 BANDS.forEach(([b,r])=>{const l=document.createElement('label');l.innerHTML='Up to '+b+'%<input id="r'+b+'" type="number" step="0.05" value="'+r+'">';rWrap.appendChild(l);});
-const ids=['age','income','lti','offer','offerRate','offerFix','curValue','owed','curYears','fixLeft','erc','sell','rent','target','term','maxAge','other','benefit','savings','save','s','wage','infl','fixYears','fee'];
+const ids=['age','income','lti','offer','offerRate','offerFix','curValue','owed','curYears','fixLeft','erc','sell','rent','target','term','maxAge','other','prefer','savings','save','s','wage','infl','fixYears','fee'];
 const sels=['ftb','borrow','over','curRegion','curType','newRegion','newType','basis'];
 const defaults={};ids.concat(sels,BANDS.map(b=>'r'+b[0])).forEach(i=>defaults[i]=$(i).value);
 
@@ -17,6 +17,8 @@ function read(){const p={};ids.forEach(i=>p[i]=parseFloat($(i).value)||0);
   p.newRegion=$('newRegion').value;
   p.gCur=growth($('curRegion').value,$('curType').value,p.basis);
   p.gNew=growth(p.newRegion,$('newType').value,p.basis);
+  // The new home is worth this much more a month to you, in today's money: a percentage of what your home now would rent for.
+  p.baseRent=p.ftb?p.rent:p.curValue*RENT_YIELD/12;p.benefit=p.prefer/100*p.baseRent;
   p.bands=BANDS.map(([b])=>[b,(parseFloat($('r'+b).value)||0)/100]);return p;}
 function rateFor(p,ltv){for(const [b,r] of p.bands){if(ltv<=b+1e-9)return r;}return null;}
 function pmt(bal,r,n){if(bal<=0)return 0;if(n<=0)return bal;const m=r/12;return m===0?bal/n:bal*m/(1-Math.pow(1+m,-n));}
@@ -92,6 +94,7 @@ function run(){
   syncMode();
   const p=read();
   growthTable(p);
+  $('preferNote').textContent=p.prefer===0?'0 judges on money alone':(p.prefer<0?'a drawback of about '+gbp(-p.benefit):'worth about '+gbp(p.benefit))+'/mo now, '+(p.ftb?'as a share of your rent':'if your home would rent for about '+gbp(p.baseRent)+'/mo');
   const never=simulate(p,null);
   const rows=[];
   for(let y=0;y<=45&&p.age+y<=p.maxAge-5&&p.age+y<100;y++)rows.push({y,age:p.age+y,res:simulate(p,y)});
@@ -103,7 +106,7 @@ function run(){
   const V=$('verdict'),S=$('sub'),F=$('facts');
   if(!best){status('none','Not possible yet');V.textContent='No move is possible on these numbers';S.textContent='Every year fails at least one check. Look at the reasons in the table, then try a longer term, more saving, or a cheaper target home.';F.innerHTML='';}
   else if(best.res.tot<never.tot){status('stay',p.ftb?'Keep renting':'Stay put');V.textContent=p.ftb?'Renting comes out ahead':'Staying put comes out ahead';
-    S.textContent='Even at the best time (age '+best.age+'), moving leaves you '+gbp(never.tot-best.res.tot)+' worse off by 100 in today\'s money. Raise the "worth to you" figure if the bigger home matters more than that.';
+    S.textContent='Even at the best time (age '+best.age+'), moving leaves you '+gbp(never.tot-best.res.tot)+' worse off by 100 in today\'s money. Raise how much more you\'d value living there if the new home matters more than that.';
     F.innerHTML=fact('Best move age',best.age)+fact('Earliest possible',first.age);}
   else{status('move',p.ftb?'Worth buying':'Worth moving');V.textContent=best.y===0?'Move now, at '+best.age:'Move at '+best.age+', in '+best.y+' year'+(best.y>1?'s':'');
     const i=best.res.info;
@@ -156,7 +159,7 @@ function drawChart(){
   s+='<path d="'+path('tot')+'" fill="none" stroke="var(--s1)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
   // Direct labels at the right-hand end of each line, nudged apart so they never overlap.
   if(!narrow&&ok.length){const lastOk=ok[ok.length-1];
-    const labs=[{t:'With living value',v:lastOk.res.tot,w:700},{t:'Money only',v:lastOk.res.fin,w:500},{t:ftb?'Keep renting':'Never move',v:never.tot,w:500}].map(o=>({...o,y:y(o.v)})).sort((a,b)=>a.y-b.y);
+    const labs=[{t:'Incl. preference',v:lastOk.res.tot,w:700},{t:'Money only',v:lastOk.res.fin,w:500},{t:ftb?'Keep renting':'Never move',v:never.tot,w:500}].map(o=>({...o,y:y(o.v)})).sort((a,b)=>a.y-b.y);
     for(let i=1;i<labs.length;i++)if(labs[i].y-labs[i-1].y<15)labs[i].y=labs[i-1].y+15;
     const over=labs[labs.length-1].y-(H-B);if(over>0)labs.forEach(o=>o.y-=over);
     labs.forEach(o=>{s+='<text x="'+(W-R+8)+'" y="'+(o.y+4).toFixed(1)+'" font-size="12" font-weight="'+o.w+'" fill="'+(o.w>600?'var(--ink)':'var(--muted)')+'">'+o.t+'</text>';});}
@@ -184,7 +187,7 @@ function hover(e){
   $('hov').innerHTML=g;
   const row=(c,dash,k,v)=>'<div class="r"><span><i style="border-top:2px '+dash+' '+c+'"></i>'+k+'</span><span>'+axisK(v)+'</span></div>';
   const tip=$('tip');
-  tip.innerHTML='<b>Move at '+r.age+'</b>'+(r.res.ok?row('var(--s1)','solid','With living value',r.res.tot)+row('var(--s3)','dotted','Money only',r.res.fin):'<div class="no">'+r.res.reason+'</div>')+row('var(--s2)','dashed',ftb?'Keep renting':'Never move',never.tot);
+  tip.innerHTML='<b>Move at '+r.age+'</b>'+(r.res.ok?row('var(--s1)','solid','Incl. preference',r.res.tot)+row('var(--s3)','dotted','Money only',r.res.fin):'<div class="no">'+r.res.reason+'</div>')+row('var(--s2)','dashed',ftb?'Keep renting':'Never move',never.tot);
   tip.hidden=false;
   const bw=$('chartbox').clientWidth,tw=tip.offsetWidth,sx=cx*rect.width/geo.W;
   tip.style.left=Math.round(sx+14+tw>bw?Math.max(0,sx-14-tw):sx+14)+'px';tip.style.top=Math.round(geo.T*rect.height/geo.H)+'px';

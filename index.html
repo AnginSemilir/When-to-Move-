@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
 <header class="top">
@@ -40,7 +40,7 @@
         <svg id="chart" role="img" aria-label="Wealth at age 100 by moving age"></svg>
         <div class="tip" id="tip" hidden></div>
       </div>
-      <div class="legend"><span class="k1">Including the value of living there</span><span class="k3">Money only</span><span class="k2" id="neverLbl">Never move</span></div>
+      <div class="legend"><span class="k1">Including how much more you value the new home</span><span class="k3">Money only</span><span class="k2" id="neverLbl">Never move</span></div>
     </section>
 
     <section class="card">
@@ -71,10 +71,11 @@
         <p>If the new payment is more than your pot you can still move: the extra each month comes out of your savings, so it lowers your position at 100 (the table shows it as "Over pot"). If you'd rather not stretch, set the option to rule those moves out instead.</p>
         <h3>Property tax</h3>
         <p>Property tax follows the new home's region: stamp duty in England and Northern Ireland (with first-time buyer relief up to £500,000), Land and Buildings Transaction Tax in Scotland (with first-time buyer relief), and Land Transaction Tax in Wales (no first-time buyer relief). Bands are those in force from April 2025 and aren't inflated.</p>
-        <h3>Why "worth to you" matters</h3>
-        <p>Money alone usually says "wait" or "never", because moving costs money. The "worth to you" figure is what makes a bigger home earn its place: the extra you'd happily pay to live there each month, roughly the rent difference between the two homes.</p>
+        <h3>How much more you'd value living there</h3>
+        <p>Money alone usually says "wait" or "never", because moving costs money. This figure is what lets a better home earn its place. It asks how much more living in the new home is worth to you than living where you are now, as a percentage. 30% means you'd happily pay 30% more to live there, all else equal.</p>
+        <p>To turn it into pounds, the site uses what your home now would rent for. If you rent, that's your rent. If you own, it's estimated at 4.5% of your home's value a year (a typical UK rental yield); the hint under the field shows the result. So 30% on a £250,000 home is about £280 a month in today's money. That amount rises with inflation and counts towards your position at 100 for every month you live in the new home. Use 0 to judge on money alone, or a negative figure if the new home would suit you less, say when downsizing.</p>
         <h3>Why the answer can swing</h3>
-        <p>On money alone, moving a few years earlier or later often makes little difference by 100, because paying for the move sooner is balanced by owning the pricier home for longer. When that's the case, even a small "worth to you" figure decides the timing: every year you live in the new home adds to it. The summary tells you when it's a close call, and which ages come within 1% of the best.</p>
+        <p>On money alone, moving a few years earlier or later often makes little difference by 100, because paying for the move sooner is balanced by owning the pricier home for longer. When that's the case, even a small percentage for how much more you'd value the new home decides the timing: every year you live in the new home adds to it. The summary tells you when it's a close call, and which ages come within 1% of the best.</p>
         <h3>Fixed deals and early repayment charges</h3>
         <p>If you're on a fixed deal now, enter when it ends and its early repayment charge. Moving before the fix ends costs that percentage of what you still owe, taken from your deposit. When the fix ends without a move, you remortgage from the rates table and pay the deal fee.</p>
         <h3>Mortgage offers</h3>
@@ -120,7 +121,7 @@
       <label>New mortgage term (years)<input id="term" type="number" value="30"></label>
       <label>Mortgage must end by age<input id="maxAge" type="number" value="70"></label>
       <label><span>Other buying costs (£)<small>legal, survey, removals</small></span><input id="other" type="number" value="3000" step="250"></label>
-      <label><span>Worth to you per month (£)<small>in today's money</small></span><input id="benefit" type="number" value="300" step="50"></label>
+      <label><span>How much more you'd value living there (%)<small id="preferNote">than your home now</small></span><input id="prefer" type="number" value="30" step="5"></label>
     </fieldset>
     <fieldset><legend>Saving</legend>
       <label>Saved already (£)<input id="savings" type="number" value="10000" step="500"></label>
@@ -142,7 +143,7 @@
 </div>
 
 <script>window.addEventListener('error',function(){var v=document.getElementById('verdict');if(v&&v.textContent==='Working it out…'){v.textContent='Something didn\u2019t load';document.getElementById('sub').textContent='Please refresh the page. If you\u2019ve visited before, a hard refresh (Ctrl+Shift+R, or Cmd+Shift+R on a Mac) makes sure you have the latest version.';}});</script>
-<script src="data.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="data.js?v=10"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

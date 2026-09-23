@@ -1,8 +1,8 @@
 const $=id=>document.getElementById(id);
 const rWrap=$('rates');
 BANDS.forEach(([b,r])=>{const l=document.createElement('label');l.innerHTML='Up to '+b+'%<input id="r'+b+'" type="number" step="0.05" value="'+r+'">';rWrap.appendChild(l);});
-const ids=['age','income','lti','curValue','owed','curYears','sell','rent','target','term','maxAge','other','benefit','savings','save','s','wage','infl','fixYears','fee'];
-const sels=['ftb','over','curRegion','curType','newRegion','newType','basis'];
+const ids=['age','income','lti','offer','curValue','owed','curYears','sell','rent','target','term','maxAge','other','benefit','savings','save','s','wage','infl','fixYears','fee'];
+const sels=['ftb','borrow','over','curRegion','curType','newRegion','newType','basis'];
 const defaults={};ids.concat(sels,BANDS.map(b=>'r'+b[0])).forEach(i=>defaults[i]=$(i).value);
 
 function growth(region,type,basis){return (REGION[region][basis]+TYPE[type][basis])/100;}
@@ -13,7 +13,7 @@ const pct=v=>(v*100).toFixed(1)+'%';
 
 function read(){const p={};ids.forEach(i=>p[i]=parseFloat($(i).value)||0);
   ['sell','s','wage','infl'].forEach(k=>p[k]/=100);
-  p.ftb=$('ftb').value==='Yes';p.strict=$('over').selectedIndex===1;p.basis=$('basis').selectedIndex;
+  p.ftb=$('ftb').value==='Yes';p.strict=$('over').selectedIndex===1;p.useOffer=$('borrow').selectedIndex===1;p.basis=$('basis').selectedIndex;
   p.newRegion=$('newRegion').value;
   p.gCur=growth($('curRegion').value,$('curType').value,p.basis);
   p.gNew=growth(p.newRegion,$('newType').value,p.basis);
@@ -32,26 +32,26 @@ function taxName(region){return region==='Scotland'?'LBTT':region==='Wales'?'Lan
 function simulate(p,moveYear){
   const T=Math.max(1,Math.round((100-p.age)*12));
   const sm=p.s/12, gmCur=Math.pow(1+p.gCur,1/12)-1, gmNew=Math.pow(1+p.gNew,1/12)-1;
-  let value=p.ftb?0:p.curValue, bal=p.ftb?0:Math.max(0,p.owed), savings=p.savings, benefit=0, income=p.income;
+  let value=p.ftb?0:p.curValue, bal=p.ftb?0:Math.max(0,p.owed), savings=p.savings, benefit=0, lend=p.useOffer?p.offer:p.income*p.lti;
   let remain=Math.round(p.curYears*12), dealLeft=0, rate=0, payment=0, moved=false, info=null;
   let budget;
   if(p.ftb)budget=p.rent+p.save;
   else{const r0=(value>0&&rateFor(p,bal/value*100))||p.bands[p.bands.length-1][1];budget=pmt(bal,r0,remain)+p.save;}
   const moveM=moveYear==null?-1:moveYear*12;
   for(let m=0;m<T;m++){
-    if(m>0&&m%12===0){budget*=1+p.wage;income*=1+p.wage;}
+    if(m>0&&m%12===0){budget*=1+p.wage;lend*=1+p.wage;}
     if(m===moveM){
       const age=p.age+m/12, price=p.target*Math.pow(1+p.gNew,m/12);
       const cash=(p.ftb?0:value*(1-p.sell)-bal)+savings, stamp=propTax(price,p.newRegion,p.ftb);
       const dep=cash-stamp-p.fee-p.other;
       const termM=Math.min(Math.round(p.term*12),Math.round((p.maxAge-age)*12));
-      info={age,price,stamp,dep,budget,maxLoan:income*p.lti};
+      info={age,price,stamp,dep,budget,maxLoan:lend};
       if(dep<=0)return{ok:false,reason:'Not enough cash to cover moving costs',info};
       const loan=Math.max(0,price-dep), ltv=loan/price*100;Object.assign(info,{loan,ltv});
       if(loan>0){
         if(ltv>95)return{ok:false,reason:'Deposit under 5%',info};
         if(termM<60)return{ok:false,reason:'Too close to your maximum mortgage age',info};
-        if(loan>info.maxLoan)return{ok:false,reason:'Loan of '+gbp(loan)+' is over the '+gbp(info.maxLoan)+' lenders would offer ('+p.lti+'× income)',info};
+        if(loan>info.maxLoan)return{ok:false,reason:'Loan of '+gbp(loan)+' is over the '+gbp(info.maxLoan)+(p.useOffer?' your mortgage offer allows':' lenders would offer ('+p.lti+'× income)'),info};
         const r=rateFor(p,ltv), pay=pmt(loan,r,termM);Object.assign(info,{rate:r,pay,over:Math.max(0,pay-budget)});
         if(p.strict&&pay>budget)return{ok:false,reason:'Payment '+gbp(pay)+'/mo is over your '+gbp(budget)+'/mo pot',info};
       }
@@ -83,7 +83,7 @@ function growthTable(p){
   $('gtbl').innerHTML=h+'</tbody>';
   $('growthUsed').textContent=(b?'Last 12 months':'Long-run')+' basis. '+(p.ftb?'':'Your home now grows at '+pct(p.gCur)+' a year; ')+'the home you want grows at '+pct(p.gNew)+' a year.';
 }
-function syncMode(){const f=$('ftb').value==='Yes';const eq=(parseFloat($('curValue').value)||0)-(parseFloat($('owed').value)||0);$('equityNote').textContent=eq<0?'negative equity of '+gbp(-eq):'your equity is '+gbp(eq);$('ownerSet').hidden=f;$('renterSet').hidden=!f;$('neverLbl').textContent=f?'Never buy (keep renting)':'Never move';}
+function syncMode(){const f=$('ftb').value==='Yes',o=$('borrow').selectedIndex===1;$('offerRow').hidden=!o;$('incomeRow').hidden=o;$('ltiRow').hidden=o;const eq=(parseFloat($('curValue').value)||0)-(parseFloat($('owed').value)||0);$('equityNote').textContent=eq<0?'negative equity of '+gbp(-eq):'your equity is '+gbp(eq);$('ownerSet').hidden=f;$('renterSet').hidden=!f;$('neverLbl').textContent=f?'Never buy (keep renting)':'Never move';}
 
 function run(){
   syncMode();

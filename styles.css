@@ -41,3 +41,4 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--green);outline-
 button{font:inherit;font-size:14px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer}
 button:focus-visible{outline:2px solid var(--green)}
 td.warn{color:var(--bad)}
+[hidden]{display:none!important}

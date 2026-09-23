@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
 <header class="top">
@@ -62,7 +62,7 @@
       <summary><span><span class="h2">How it works</span><span class="note">The model, its checks and its limits</span></span></summary>
       <div class="prose">
         <h3>Your monthly pot</h3>
-        <p>Each month you put a fixed amount towards housing, your "pot": your current mortgage payment (or rent, if you're buying your first home) plus what you save. The site works out your current payment from what you still owe, the rate for your loan-to-value in the table, and the years left. The pot rises each year with your pay. Before the move, whatever isn't mortgage goes into savings. On moving day, your equity after selling costs plus all savings become the deposit, minus stamp duty, the mortgage fee and other costs.</p>
+        <p>Each month you put a fixed amount towards housing, your "pot": your current mortgage payment (or rent, if you're buying your first home) plus what you save. If you enter your current mortgage payment the site uses it. If you leave it blank, it estimates the payment from what you still owe, the rate for your loan-to-value in the table, and the years left, so editing the rates table also changes your pot. The pot rises each year with your pay. Before the move, whatever isn't mortgage goes into savings. On moving day, your equity after selling costs plus all savings become the deposit, minus stamp duty, the mortgage fee and other costs.</p>
         <h3>Rates and remortgaging</h3>
         <p>The rate comes from the table by loan-to-value. Every time a fixed deal ends you remortgage at your new LTV and pay the fee again, so paying down debt earns you cheaper rates. After a mortgage is cleared, the whole monthly pot goes into savings.</p>
         <h3>When a move is ruled out</h3>
@@ -93,19 +93,20 @@
       <label>Buying your first home?<select id="ftb"><option selected>No</option><option>Yes</option></select></label>
     </fieldset>
     <fieldset><legend>Borrowing</legend>
-      <label>How much can you borrow?<select id="borrow"><option selected>From income</option><option>I have an offer</option></select></label>
+      <label>How much can you borrow?<select id="borrow"><option value="income" selected>From income</option><option value="offer">I have an offer</option></select></label>
       <label id="offerRow" hidden><span>Mortgage offer (£)<small>or agreement in principle; rises with your pay in later years</small></span><input id="offer" type="number" value="300000" step="5000"></label>
       <label class="offerOnly" hidden><span>Offer rate (%)<small>optional; leave blank to use the rates table</small></span><input id="offerRate" type="number" value="" step="0.01" min="0" placeholder="e.g. 4.49"></label>
       <label class="offerOnly" hidden><span>Fixed for (years)<small>optional; blank uses your fix length below</small></span><input id="offerFix" type="number" value="" min="1" placeholder="e.g. 5"></label>
       <label id="incomeRow"><span>Household income (£ a year)<small>before tax, everyone on the mortgage</small></span><input id="income" type="number" value="65000" step="1000"></label>
       <label id="ltiRow"><span>Lenders lend up to (× income)<small>4.5 is typical, some go to 5.5</small></span><input id="lti" type="number" value="4.5" step="0.1" min="1"></label>
-      <label>If the new payment is more than your pot<select id="over"><option selected>Pay the extra</option><option>Rule it out</option></select></label>
+      <label>If the new payment is more than your pot<select id="over"><option value="pay" selected>Pay the extra</option><option value="rule">Rule it out</option></select></label>
     </fieldset>
     <fieldset id="ownerSet"><legend>Your home now</legend>
       <label>Region<select id="curRegion"><option>North East</option><option selected>North West</option><option>Yorkshire and the Humber</option><option>East Midlands</option><option>West Midlands</option><option>East of England</option><option>London</option><option>South East</option><option>South West</option><option>Wales</option><option>Scotland</option><option>Northern Ireland</option></select></label>
       <label>Type<select id="curType"><option>All types</option><option>Detached</option><option>Semi-detached</option><option selected>Terraced</option><option>Flat or maisonette</option></select></label>
       <label>What it's worth now (£)<input id="curValue" type="number" value="250000" step="5000"></label>
       <label><span>Mortgage still owed (£)<small id="equityNote">leave at 0 if you own it outright</small></span><input id="owed" type="number" value="170000" step="1000"></label>
+      <label><span>Monthly mortgage payment (£)<small id="payNote">optional; blank estimates it</small></span><input id="curPay" type="number" value="" step="10" placeholder="e.g. 950"></label>
       <label>Years left on mortgage<input id="curYears" type="number" value="25" min="0"></label>
       <label><span>Current fix ends in (years)<small>optional; blank if you're not on a fixed deal</small></span><input id="fixLeft" type="number" value="" min="0" step="0.5" placeholder="e.g. 2"></label>
       <label><span>Early repayment charge (%)<small>of what you owe, if you move before the fix ends</small></span><input id="erc" type="number" value="" min="0" step="0.5" placeholder="e.g. 3"></label>
@@ -130,7 +131,7 @@
       <label><span>Yearly pay rise (%)<small>grows your monthly pot</small></span><input id="wage" type="number" value="2" step="0.1"></label>
     </fieldset>
     <fieldset><legend>Market</legend>
-      <label><span>House price growth<small>from the regional data</small></span><select id="basis"><option selected>Long-run, 2016–26</option><option>Last 12 months</option></select></label>
+      <label><span>House price growth<small>from the regional data</small></span><select id="basis"><option value="0" selected>Long-run, 2016–26</option><option value="1">Last 12 months</option></select></label>
       <label>Inflation (%/yr)<input id="infl" type="number" value="2.5" step="0.1"></label>
       <label>Fix length (years)<input id="fixYears" type="number" value="5" min="1"></label>
       <label>Fee per mortgage deal (£)<input id="fee" type="number" value="1000" step="100"></label>
@@ -143,7 +144,8 @@
 </div>
 
 <script>window.addEventListener('error',function(){var v=document.getElementById('verdict');if(v&&v.textContent==='Working it out…'){v.textContent='Something didn\u2019t load';document.getElementById('sub').textContent='Please refresh the page. If you\u2019ve visited before, a hard refresh (Ctrl+Shift+R, or Cmd+Shift+R on a Mac) makes sure you have the latest version.';}});</script>
-<script src="data.js?v=10"></script>
-<script src="app.js?v=10"></script>
+<script src="data.js?v=12"></script>
+<script src="model.js?v=12"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>

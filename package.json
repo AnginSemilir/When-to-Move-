@@ -1,0 +1,8 @@
+{
+  "name": "when-to-move",
+  "private": true,
+  "description": "Static site estimating the best age to move house, judged by your position at 100",
+  "scripts": {
+    "test": "node tests/run.js"
+  }
+}

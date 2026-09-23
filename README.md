@@ -15,7 +15,9 @@ npx serve .
 - `index.html` – page and inputs
 - `styles.css` – styling (light and dark mode)
 - `data.js` – mortgage rates by LTV and regional house price growth by property type
-- `app.js` – the model, chart and tables
+- `model.js` – the calculations and default inputs, with no page code, so they can be tested on their own
+- `app.js` – the page: reads the inputs, shows the verdict, chart and tables
+- `tests/` – scenario library and sense checks
 
 ## Updating the data
 
@@ -35,3 +37,21 @@ Lender borrowing is checked with a simple income multiple only (no detailed affo
 ## Publishing changes
 
 The site is served by GitHub Pages from `main`. When you change `styles.css`, `data.js` or `app.js`, bump the `?v=` number on their links in `index.html` so browsers don't mix a cached old file with the new page.
+
+## Tests
+
+Needs Node.js 18 or later, and nothing else:
+
+```
+npm test                  # or: node tests/run.js
+node tests/run.js --verbose
+```
+
+The run covers:
+
+- **Formulas**, checked against figures worked out by hand: mortgage payments, stamp duty, LBTT, LTT and rate bands.
+- **Hand-counted worlds**, where growth, interest, inflation and pay rises are all zero, so the result at 100 can be added up exactly.
+- **Scenarios** (`tests/scenarios.js`): people described by the inputs they'd type, each with the answer a sensible person would expect. Every result must also obey some basic rules: no loan over 95% LTV or the lending limit, no mortgage past the age limit, the best year really is the best, and so on.
+- **What-ifs**: change one input and the answer should move the way common sense says. For example, more savings never leaves you worse off.
+
+It finishes with a table of every scenario's result for reading through. To add a scenario, copy one in `tests/scenarios.js` and change the inputs and expectations.

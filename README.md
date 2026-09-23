@@ -29,4 +29,4 @@ Property tax bands (England/NI stamp duty, Scottish LBTT, Welsh LTT) are in `pro
 
 ## Limitations
 
-Lender income checks aren't modelled, rates and growth are held constant into the future, and tax bands aren't inflated.
+Lender borrowing is checked with a simple income multiple only (no detailed affordability or stress test), rates and growth are held constant into the future, and tax bands aren't inflated.

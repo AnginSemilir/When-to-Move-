@@ -26,7 +26,7 @@ function run(){
     $('payNote').textContent=p.owed<=0?'no mortgage':p.curPay>0?'used as your payment now':p.curYears<=0?'enter the years left to estimate it':'blank: estimated at '+gbp(pmt(p.owed,r0,Math.round(p.curYears*12)))+'/mo';}
   $('preferNote').textContent=p.prefer===0?'0 judges on money alone':(p.prefer<0?'a drawback of about '+gbp(-p.benefit):'worth about '+gbp(p.benefit))+'/mo now, '+(p.ftb?'as a share of your rent':'if your home would rent for about '+gbp(p.baseRent)+'/mo');
   const res=evaluate(p);
-  if(res.problem){status('none','Check your numbers');$('verdict').textContent='Something doesn\'t add up';$('sub').textContent=res.problem;$('facts').innerHTML='';$('tbl').innerHTML='';CH=null;$('chart').innerHTML='';unhover();return;}
+  if(res.problem){status('none','Check your numbers');$('verdict').textContent='Something doesn\'t add up';$('sub').textContent=res.problem;$('facts').innerHTML='';$('tbl').innerHTML='';$('alert').hidden=true;CH=null;$('chart').innerHTML='';unhover();return;}
   const {never,rows,ok,best,bestFin,first}=res;
   // verdict
   const V=$('verdict'),S=$('sub'),F=$('facts');
@@ -39,7 +39,9 @@ function run(){
     S.textContent='By 100 that leaves you '+gbp(best.res.tot-never.tot)+' better off than '+(p.ftb?'renting for good':'never moving')+', in today\'s money.'+(first&&first.y<best.y?' You could move from '+first.age+', but waiting until '+best.age+' leaves you '+gbp(best.res.tot-first.res.tot)+' better off.':'')+(bestFin&&bestFin.y!==best.y?' On money alone the best age would be '+bestFin.age+', but only by '+gbp(bestFin.res.fin-best.res.fin)+', so how much you value the new home decides the timing.':'');
     S.textContent+=closeCall(ok,best);
     F.innerHTML=fact('Price then',gbp(i.price))+fact('Deposit',gbp(Math.min(i.dep,i.price)))+fact('Loan-to-value',i.ltv.toFixed(0)+'%')+(i.pay?fact(i.fromOffer?'Rate (your offer)':'Rate',(i.rate*100).toFixed(2)+'%')+fact('Payment',gbp(i.pay)+'/mo'):'')+fact('Your pot then',gbp(i.budget)+'/mo')+(i.over>0?fact('Over your pot',gbp(i.over)+'/mo','warn'):'')+fact('Lenders would lend',gbp(i.maxLoan))+fact(taxName(p.newRegion),gbp(i.stamp))+(i.erc>0?fact('Early repayment charge',gbp(i.erc),'warn'):'');
-    if(i.over>0)S.textContent+=' The payment is '+gbp(i.over)+'/mo more than your pot at first; that comes out of savings and is already counted.';}
+    if(i.over>0&&!best.res.short)S.textContent+=' The payment is '+gbp(i.over)+'/mo more than your pot at first; that comes out of savings and is already counted.';}
+  // Warn when the recommended path (or staying put) runs savings below zero.
+  shortAlert(best&&best.res.tot>=never.tot?best:{res:never,stay:true},p);
   table(rows,best);chart(rows,never,best,p);
 }
 const ICONS={move:'<path d="M3.5 8.5l3 3 6-7"/>',stay:'<path d="M2.5 8h11"/>',none:'<path d="M4 4l8 8M12 4l-8 8"/>'};
@@ -49,13 +51,18 @@ function status(kind,label){const b=$('badge');b.hidden=false;b.className='badge
 // When other years are within 1% of the best, the timing is a close call: say so, with the range.
 function closeCall(ok,best){const near=ok.filter(r=>best.res.tot-r.res.tot<=Math.abs(best.res.tot)*0.01);if(near.length<2)return '';
   const a=near[0].age,b=near[near.length-1].age;return ' It\'s a close call: moving any time from '+a+' to '+b+' comes within 1% ('+gbp(Math.abs(best.res.tot)*0.01)+') of the best.';}
+function shortAlert(path,p){const a=$('alert'),s=path&&path.res.short;
+  if(!s){a.hidden=true;return;}
+  a.hidden=false;
+  a.innerHTML='<b>Your savings run out'+(path.stay?(p.ftb?' if you keep renting':' if you stay put'):'')+'.</b> They drop below zero at '+Math.floor(s.from)+' and are at their lowest at '+Math.floor(s.worstAge)+', '+gbp(-s.worst)+' short in today\'s money. '+
+    'The figures assume you borrow the gap at your savings interest rate. In practice you\'d need to cut other spending or borrow at a higher rate, so treat this result with care.';}
 function fact(k,v,cls){return '<div'+(cls?' class="'+cls+'"':'')+'><dt>'+k+'</dt><dd>'+v+'</dd></div>';}
 function table(rows,best){
-  let h='<thead><tr><th>Move at</th><th>Price then</th><th>ERC</th><th>Deposit</th><th>LTV</th><th>Rate</th><th>Payment</th><th>Your pot</th><th>Over pot</th><th>At 100</th><th>Money only</th></tr></thead><tbody>';
+  let h='<thead><tr><th>Move at</th><th>Price then</th><th>ERC</th><th>Deposit</th><th>LTV</th><th>Rate</th><th>Payment</th><th>Your pot</th><th>Over pot</th><th>Savings run out</th><th>At 100</th><th>Money only</th></tr></thead><tbody>';
   rows.forEach(r=>{const i=r.res.info||{};
-    if(!r.res.ok){h+='<tr class="fail"><td>'+r.age+'</td><td>'+gbp(i.price)+'</td><td>'+(i.erc>0?gbp(i.erc):'–')+'</td><td colspan="8" class="no">'+r.res.reason+'</td></tr>';return;}
+    if(!r.res.ok){h+='<tr class="fail"><td>'+r.age+'</td><td>'+gbp(i.price)+'</td><td>'+(i.erc>0?gbp(i.erc):'–')+'</td><td colspan="9" class="no">'+r.res.reason+'</td></tr>';return;}
     const isBest=best&&r.y===best.y;
-    h+='<tr'+(isBest?' class="best"':'')+'><td>'+r.age+(isBest?'<span class="pill">Best</span>':'')+'</td><td>'+gbp(i.price)+'</td><td>'+(i.erc>0?gbp(i.erc):'–')+'</td><td>'+gbp(Math.min(i.dep,i.price))+'</td><td>'+i.ltv.toFixed(0)+'%</td><td>'+(i.rate?(i.rate*100).toFixed(2)+'%':'–')+'</td><td>'+(i.pay?gbp(i.pay):'–')+'</td><td>'+gbp(i.budget)+'</td><td'+(i.over>0?' class="warn"':'')+'>'+(i.over>0?gbp(i.over):'–')+'</td><td>'+gbpK(r.res.tot)+'</td><td>'+gbpK(r.res.fin)+'</td></tr>';});
+    h+='<tr'+(isBest?' class="best"':'')+'><td>'+r.age+(isBest?'<span class="pill">Best</span>':'')+'</td><td>'+gbp(i.price)+'</td><td>'+(i.erc>0?gbp(i.erc):'–')+'</td><td>'+gbp(Math.min(i.dep,i.price))+'</td><td>'+i.ltv.toFixed(0)+'%</td><td>'+(i.rate?(i.rate*100).toFixed(2)+'%':'–')+'</td><td>'+(i.pay?gbp(i.pay):'–')+'</td><td>'+gbp(i.budget)+'</td><td'+(i.over>0?' class="warn"':'')+'>'+(i.over>0?gbp(i.over):'–')+'</td><td'+(r.res.short?' class="warn" title="Lowest point '+gbp(-r.res.short.worst)+' short at '+Math.floor(r.res.short.worstAge)+'"':'')+'>'+(r.res.short?'at '+Math.floor(r.res.short.from):'–')+'</td><td>'+gbpK(r.res.tot)+'</td><td>'+gbpK(r.res.fin)+'</td></tr>';});
   $('tbl').innerHTML=h+'</tbody>';
 }
 

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
 <header class="top">
@@ -27,6 +27,7 @@
       <span class="badge" id="badge" hidden></span>
       <p class="verdict" id="verdict">Working it out…</p>
       <p class="sub" id="sub"></p>
+      <p class="alert" id="alert" role="status" hidden></p>
       <dl class="facts" id="facts"></dl>
       <a class="jump" href="#inputs">Change your numbers ↓</a>
     </section>
@@ -69,6 +70,8 @@
         <p>A move is ruled out if the deposit is under 5%, the loan is more than lenders would offer (either your household income times the multiple you set, or the mortgage offer you enter; both rise with your pay for later years), or the mortgage couldn't run for at least 5 years before your maximum age. Lenders also run their own affordability checks on your outgoings, which aren't modelled beyond the income multiple.</p>
         <h3>Paying more than your pot</h3>
         <p>If the new payment is more than your pot you can still move: the extra each month comes out of your savings, so it lowers your position at 100 (the table shows it as "Over pot"). If you'd rather not stretch, set the option to rule those moves out instead.</p>
+        <h3>When your savings run out</h3>
+        <p>If your payments are more than your pot for long enough, or you rent and your rent rises faster than your pay, your savings can drop below zero. The model carries on as if you borrowed the gap at your savings interest rate. It shows a warning when that happens on the recommended path, and the table's "Savings run out" column shows the age for every year. Real borrowing costs more, so treat those results with care.</p>
         <h3>Property tax</h3>
         <p>Property tax follows the new home's region: stamp duty in England and Northern Ireland (with first-time buyer relief up to £500,000), Land and Buildings Transaction Tax in Scotland (with first-time buyer relief), and Land Transaction Tax in Wales (no first-time buyer relief). Bands are those in force from April 2025 and aren't inflated.</p>
         <h3>How much more you'd value living there</h3>
@@ -144,8 +147,8 @@
 </div>
 
 <script>window.addEventListener('error',function(){var v=document.getElementById('verdict');if(v&&v.textContent==='Working it out…'){v.textContent='Something didn\u2019t load';document.getElementById('sub').textContent='Please refresh the page. If you\u2019ve visited before, a hard refresh (Ctrl+Shift+R, or Cmd+Shift+R on a Mac) makes sure you have the latest version.';}});</script>
-<script src="data.js?v=12"></script>
-<script src="model.js?v=12"></script>
-<script src="app.js?v=12"></script>
+<script src="data.js?v=13"></script>
+<script src="model.js?v=13"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>

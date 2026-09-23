@@ -57,6 +57,7 @@ function simulate(p,moveYear){
     const pay0=p.curPay>0&&bal>0?p.curPay:pmt(bal,r0,remain);budget=pay0+p.save;
     if(fixLeftM>0&&bal>0){rate=r0;payment=pay0;dealLeft=fixLeftM;}}
   const moveM=moveYear==null?-1:moveYear*12;
+  let short=null; // when savings first dip below zero, and the lowest point in today's money
   for(let m=0;m<T;m++){
     if(m>0&&m%12===0){budget*=1+p.wage;lend*=1+p.wage;}
     if(m===moveM){
@@ -88,12 +89,14 @@ function simulate(p,moveYear){
     else if(bal>0){const int=bal*rate/12;out=Math.min(payment,bal+int);bal=bal+int-out;if(bal<1)bal=0;}
     remain--;dealLeft--;
     savings=savings*(1+sm)+(budget-out);
+    if(savings<-1){const real=savings/Math.pow(1+p.infl,(m+1)/12),age=p.age+(m+1)/12;
+      if(!short)short={from:age,worst:real,worstAge:age};else if(real<short.worst){short.worst=real;short.worstAge=age;}}
     value*=1+(moved?gmNew:gmCur);
     if(moved)benefit=benefit*(1+sm)+p.benefit*Math.pow(1+p.infl,m/12);
   }
   const defl=Math.pow(1+p.infl,T/12);
   const fin=(value-bal+savings)/defl;
-  return{ok:true,fin,tot:fin+benefit/defl,info};
+  return{ok:true,fin,tot:fin+benefit/defl,info,short};
 }
 
 // Run every possible moving year and pick the best. Returns everything the page and tests need.

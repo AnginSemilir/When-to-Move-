@@ -20,6 +20,7 @@ module.exports=[
     inputs:{},
     expect:{kind:'move',bestAge:39,reasons:[/lenders would offer \(4\.5× income\)/],
       check:e=>{const i=e.best.res.info;
+        if(e.best.res.short)return 'payment fits the pot, so savings should never run out';
         if(Math.abs(i.pay-1664)>2)return 'payment at 39 should be about £1,664, got '+Math.round(i.pay);
         if(i.loan>i.maxLoan)return 'loan is over what lenders would lend';}}
   },
@@ -39,7 +40,8 @@ module.exports=[
     name:'First-time buyer, £90k income, £40k saved',
     why:'Now the deposit and loan work, so buying beats renting for good by a wide margin.',
     inputs:{ftb:'Yes',income:90000,savings:40000},
-    expect:{kind:'move',bestAge:35,check:e=>{const i=e.best.res.info;
+    expect:{kind:'move',bestAge:35,check:e=>{const i=e.best.res.info,sh=e.best.res.short;
+      if(!sh||sh.from>36||sh.worst>-20000)return 'paying £489/mo over the pot from a zero balance should run savings out soon after moving, by over £20k';
       if(i.stamp!==5000)return 'first-time buyer stamp duty on £400k should be £5,000, got '+i.stamp;
       if(!(i.ltv>90&&i.ltv<=95))return 'LTV should be just over 90%, got '+i.ltv.toFixed(1);}}
   },

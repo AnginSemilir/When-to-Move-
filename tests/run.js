@@ -80,6 +80,8 @@ for(const s of scenarios){
       if(i.loan>i.maxLoan+0.01)probs.push(r.age+': loan over lending limit');
       if(i.loan>0&&!(i.pay>0))probs.push(r.age+': loan with no payment');
       if(i.loan>0&&Math.round((p.maxAge-i.age)*12)<60)probs.push(r.age+': mortgage past the age limit');});
+    [e.never].concat(e.ok.map(r=>r.res)).forEach(r=>{const sh=r.short;if(sh&&!(sh.worst<0&&sh.from<=sh.worstAge&&sh.from>=p.age))probs.push('savings shortfall is inconsistent');});
+    e.ok.forEach(r=>{if(!r.res.short&&r.res.info.over>0&&r.res.info.dep<=r.res.info.price&&M.simulate(p,r.y).fin<0)probs.push(r.age+': ends below zero without a shortfall warning');});
     const bestTot=Math.max(...e.ok.map(r=>r.res.tot));
     if(e.best&&!near(e.best.res.tot,bestTot))probs.push('best is not the highest total');
     if(e.best&&(e.kind==='move')!==(e.best.res.tot>=e.never.tot))probs.push('verdict disagrees with the totals');
@@ -115,6 +117,7 @@ const whatifs=[
   ['Entering your payment sets the pot: payment + monthly saving',()=>near(M.simulate(M.params({curPay:950}),0).info.budget,950+600)],
   ['Higher stamp duty region costs more on the same price (Wales vs England, £400k)',()=>M.propTax(400000,'Wales',false)>M.propTax(400000,'North West',false)],
   ['Higher rent makes renting for good worse',()=>ev({ftb:'Yes',rent:1400}).never.tot<ev({ftb:'Yes',rent:1100}).never.tot],
+  ['More savings never makes savings run out sooner',()=>{const a=ev({income:90000}).rows[1].res.short,b=ev({income:90000,savings:60000}).rows[1].res.short;return !b||(a&&b.from>=a.from);}],
   ['A later mortgage age limit never makes fewer years possible',()=>subset(okAges(ev({maxAge:70})),okAges(ev({maxAge:75})))],
 ];
 whatifs.forEach(([n,f])=>{let ok;try{ok=f();}catch(err){ok=false;}check('What-if',n,ok?null:'did not hold');});
